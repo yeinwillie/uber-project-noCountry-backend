@@ -70,12 +70,9 @@ export const registerUser = async (req, res) => {
             emailStatus : user.emailStatus,
             hasAllData: user.hasAllData
           }
-          return res.json({ message: 'Data updated successfully.', ...payload });
-        } else {
-
            // Redirect to login controller
-          return login(req, res);
-        }
+           return login(req, res);
+        } 
       }
     }
   } catch (error) {
