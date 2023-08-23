@@ -2,7 +2,7 @@ import Users from '../models/userModels.js'
 import {sendVerificationEmail} from '../services/emailConfig.js';
 import generateRandomCode from '../utils/verificationCode.js';
 import { hashPassword } from '../utils/encriptation.js';
-
+import {login} from '../controller/loginController.js';
  
 // Controller for user registration
 export const registerUser = async (req, res) => {
@@ -72,11 +72,9 @@ export const registerUser = async (req, res) => {
           }
           return res.json({ message: 'Data updated successfully.', ...payload });
         } else {
-          const payload = {
-            emailStatus : user.emailStatus,
-            hasAllData: user.hasAllData
-          }
-          return res.json({ message: 'User data already updated.', ...payload });
+
+           // Redirect to login controller
+          return login(req, res);
         }
       }
     }
