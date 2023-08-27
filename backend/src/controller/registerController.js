@@ -1,16 +1,20 @@
-import Users from '../models/userModels.js'
-import {sendVerificationEmail} from '../services/emailConfig.js';
+import Users from '../models/userModels.js';
+import { sendVerificationEmail } from '../services/emailConfig.js';
 import generateRandomCode from '../utils/verificationCode.js';
 import { hashPassword } from '../utils/encriptation.js';
-import {login} from '../controller/loginController.js';
- 
+import { login } from '../controller/loginController.js';
+import { createToken } from '../utils/jwt.js';
+
+import dotenv from 'dotenv';
+dotenv.config();
+
 // Controller for user registration
 export const registerUser = async (req, res) => {
   const { email } = req.body;
-  
+
   try {
     let user = await Users.findOne({ email });
-    
+
     if (!user) {
       // User is not registered, generate a 4-digit verification code
       const verificationCode = generateRandomCode(4);
@@ -27,30 +31,30 @@ export const registerUser = async (req, res) => {
 
       // payload
       const payload = {
-        emailStatus : user.emailStatus,
-        hasAllData: user.hasAllData
-      }
+        emailStatus: user.emailStatus,
+        hasAllData: user.hasAllData,
+      };
       // Send the verification code to the user (e.g., via email)
       await sendVerificationEmail(user, verificationCode);
 
-      return res.json({ message: 'Verification code sent.',...payload });
+      return res.json({ message: 'Verification code sent.', ...payload });
     } else {
       if (user.emailStatus === 'UNVERIFIED') {
         // User is registered but hasn't verified the code
         // Resend the verification code
-       const verificationCode = user.verificationCode;
-       const payload = {
-        emailStatus : user.emailStatus,
-        hasAllData: user.hasAllData
-      }
+        const verificationCode = user.verificationCode;
+        const payload = {
+          emailStatus: user.emailStatus,
+          hasAllData: user.hasAllData,
+        };
 
-      await sendVerificationEmail(user, verificationCode);
+        await sendVerificationEmail(user, verificationCode);
 
         return res.json({ message: 'Verification code resent.', ...payload });
       } else if (user.emailStatus === 'VERIFIED') {
         if (!user.hasAllData) {
           const { firstName, lastName, password, cellNumber } = req.body;
-          
+
           // Hash the password
           const hashedPassword = await hashPassword(password);
 
@@ -67,12 +71,12 @@ export const registerUser = async (req, res) => {
 
           await user.save();
           const payload = {
-            emailStatus : user.emailStatus,
-            hasAllData: user.hasAllData
-          }
-           // Redirect to login controller
-           return login(req, res);
-        } 
+            emailStatus: user.emailStatus,
+            hasAllData: user.hasAllData,
+          };
+          // Redirect to login controller
+          return login(req, res);
+        }
       }
     }
   } catch (error) {
@@ -82,9 +86,8 @@ export const registerUser = async (req, res) => {
 };
 
 export const emailVerification = async (req, res) => {
-
   const { email, verificationCode } = req.body;
-  
+
   try {
     let user = await Users.findOne({ email });
     console.log(user);
@@ -97,7 +100,6 @@ export const emailVerification = async (req, res) => {
     }
 
     if (user.verificationCode !== verificationCode) {
-      
       return res.status(400).json({ error: 'Incorrect verification code.' });
     }
 
@@ -105,18 +107,64 @@ export const emailVerification = async (req, res) => {
     user.emailStatus = 'VERIFIED';
     await user.save();
     const payload = {
-      emailStatus : user.emailStatus,
-      hasAllData: user.hasAllData
-    }
+      emailStatus: user.emailStatus,
+      hasAllData: user.hasAllData,
+    };
 
     return res.json({ message: 'User verified.', ...payload });
   } catch (error) {
     console.error('Error during email verification:', error);
-    return res.status(500).json({ error: 'An internal server error occurred.' });
+    return res
+      .status(500)
+      .json({ error: 'An internal server error occurred.' });
   }
 };
-    
-  
 
+export const registerLogin = async (req, res) => {
+  const { name, lastName, email } = req.body;
 
+  try {
+    let user = await Users.findOne({ email });
 
+    // User doesn´t exit save it´s basic data
+    if (!user) {
+      user = new Users({
+        firstName: name,
+        lastName: lastName,
+        email: email,
+      });
+
+      await user.save();
+
+      // crate a token to be send in correct response
+      const token = await createToken({
+        id: user._id,
+      });
+
+      // send token by coockie
+      res.cookie('token', token, {
+        httpOnly: process.env.NODE_ENV !== 'development',
+        secure: true,
+        sameSite: 'none',
+      });
+      res.status(200).json({ message: 'logged sucessfully', token });
+    } else {
+      // crate a token to be send in correct response
+      const token = await createToken({
+        id: user._id,
+      });
+
+      // send token by coockie
+      res.cookie('token', token, {
+        httpOnly: process.env.NODE_ENV !== 'development',
+        secure: true,
+        sameSite: 'none',
+      });
+      res.status(200).json({ message: 'logged sucessfully', token });
+    }
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ error: 'An internal server error occurred.' });
+  }
+};

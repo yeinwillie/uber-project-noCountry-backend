@@ -31,8 +31,7 @@ export const login = async (req, res) => {
       secure: true,
       sameSite: 'none',
     });
-
-    res.status(200).send({ message: 'logged sucessfully' });
+    res.status(200).json({ message: 'logged sucessfully', token });
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }
