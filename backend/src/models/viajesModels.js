@@ -13,6 +13,7 @@ const viajeSchema = new mongoose.Schema({
   fecha: {
     type: Date,
     required: true,
+    default: Date.now
   },
   id_conductor: { type: mongoose.Schema.Types.ObjectId, ref: 'Conductor' },
   id_usuario: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }

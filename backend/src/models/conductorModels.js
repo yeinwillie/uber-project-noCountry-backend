@@ -34,6 +34,11 @@ const conductorSchema = new mongoose.Schema({
     type: Number,
     required: true,
   },
+
+  categoria: {
+    type: String,
+    required: true,
+  },
 });
 
 const Conductor = mongoose.model("Conductor", conductorSchema);

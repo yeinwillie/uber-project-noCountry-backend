@@ -14,6 +14,12 @@ export const registerUser = async (req, res) => {
 
   try {
     let user = await Users.findOne({ email });
+    
+    // registered user with google
+
+  if (user && user.verificationCode===undefined) {
+    return res.status(401).json({ message: 'Email registrado' });
+  }
 
     if (!user) {
       // User is not registered, generate a 4-digit verification code

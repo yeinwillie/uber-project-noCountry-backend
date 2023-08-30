@@ -1,23 +1,23 @@
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
+import User from '../models/userModels.js';
 
 dotenv.config();
 const secretKey = process.env.TOKEN_SECRET;
 
-export const validateTokenController = (req, res, next) => {
-  const token = req.body.token;
-  if (!token) {
-    return res.status(401).json({ message: 'No token provided' });
-  }
+export const validateTokenController = (req, res) => {
+  const { token } = req.body
 
-  jwt.verify(token, secretKey, (err, decoded) => {
-    if (err) {
-      return res.status(403).json({ message: 'Invalid token' });
-    }
+  if (!token) return res.send(false);
 
-    // Llamada a next() después de la verificación exitosa del token
-    next();
+  jwt.verify(token, secretKey, async (error, user) => {
 
-    // Mover esta línea después de next()
+    if (error) return res.status(400).json({ message: "no se pudo autenticar" })
+
+    const userFound = await User.findById(user.id);
+
+    if (!userFound) return res.sendStatus(401);
+
+    res.status(200).json({ message: "autenticado con exito" })
   });
 };
