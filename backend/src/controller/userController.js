@@ -6,6 +6,7 @@ import jwt from 'jsonwebtoken';
 dotenv.config();
 const userModel = User;
 const secretKey = process.env.TOKEN_SECRET;
+
 const usersGet = async(req = request, res = response) => {
     try {
         const users = await userModel.find();
@@ -48,7 +49,7 @@ const usersPost = async(req, res) =>{
     await user.save()
     res.json(user);
 }
-*/
+
 const usersPut = async(req, res) =>{
     try {
         const updatedUser = await userModel.findByIdAndUpdate(req.params.id, req.body, { new: true });
@@ -57,6 +58,54 @@ const usersPut = async(req, res) =>{
         res.status(400).json({ error: 'Usuario no encontrado' });
       }
 }
+*/
+const usersPut = async (req, res) => {
+  const  token  = req.body.token;
+    if (!token) {
+    return res.status(401).json({ message: 'Token no proporcionado' });
+    }
+  const decoded = jwt.verify(token, secretKey);
+  console.log(decoded)
+  const userId = decoded.id;
+  const user = await User.findById(userId);
+  console.log(user)
+  // Si el usuario no esta registrado
+  if (!user) {
+    return res.status(404).send({ mensaje: "Usuario no encontrado" });
+  }
+
+  // verificar edad 
+
+  const dateOfBirth = new Date(req.body.dateOfBirth);
+  const currentDate = new Date();
+  const userAge = currentDate.getFullYear() - dateOfBirth.getFullYear();
+
+  // Si el usuario es menos de 18 años no se puede registrar
+  if (userAge < 18) {
+    return res.status(400).send({ mensaje: "Debes ser mayor de 18 años para registrarte." });
+  }
+
+  const userEdited = {
+    firstName: req.body.firstName,
+    lastName: req.body.lastName,
+    email: req.body.email,
+    dateOfBirth: req.body.dateOfBirth,
+    nationality: req.body.nationality,
+    cellnumber: req.body.cellnumber,
+  };
+  
+  try {
+    
+    
+    const userPatch = await User.findOneAndUpdate({ _id:  userId}, userEdited);
+    console.log(userPatch);
+    res.status(200).send({ mensaje: "Usuario modificado con éxito", userEdited });
+    
+  } catch (error) {
+
+    res.status(500).send({ mensaje: "Error al actualizar el usuario" });
+  }
+};
 
 const usersDelete = async(req, res) =>{
 
@@ -68,11 +117,81 @@ const usersDelete = async(req, res) =>{
       }
 }
 
+const recoverypassword = async (req,res) => {
+  try {
+
+    // Verificando si el usuario existe
+
+    const email = req.body.email;
+    const existingUser = await User.findOne({email});
+    if (!existingUser) {
+      res.status(400).send({message:"Verifica tu correo electronico",});
+    }
+
+    console.log(existingUser);
+    // Creando nueva clave para el usuario (6 numero, 1 mayuscula y 1minuscula)
+
+    const recovPassword = generateRandomPassword();
+
+    console.log(recovPassword);
+    // Hasheando la clave creada
+
+    const salt = bcrypt.genSaltSync(10); //cantidad de saltos que da para encriptar, entre mas vuelta da es mas segura.
+    const recovPasswordHash = bcrypt.hashSync(recovPassword, salt);
+
+    console.log(recovPasswordHash);
+    // Guardando la nueva clave en la base de datos
+
+    existingUser.password = recovPasswordHash;
+    existingUser.save();
+
+    // enviar la clave por correo
+    await sendrecoveryPasswordEmail(existingUser, recovPassword);
+
+    // Se envia la respuesta positiva
+
+    res.status(200).send({ mensaje: "Nueva contraseña enviada al correo del usuario"});
+
+  } catch (error) {
+    res.status(400).send({message:"Intento de recuperacion de contraseña invalido"})
+  }
+};
+
+async function sendrecoveryPasswordEmail(existingUser, recovPassword) {
+  const accessToken = await oAuth2client.getAccessToken();
+
+   const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      type: "OAuth2",
+      user: "uberclonenocountry@gmail.com", // Reemplaza con tu dirección de Gmail
+      clientId: CLIENT_ID, 
+      clientSecret: CLIENT_SECRET,
+      refreshToken: REFRESH_TOKEN,
+      accessToken: accessToken,
+    },
+  });
+
+  const mailOptions = {
+      from: "uberclonenocountry@gmail.com", // Reemplaza con tu dirección de Gmail
+      to: existingUser.email,
+      subject: "Recuperacion de contraseña Urbanmove",
+      html: `<a href="https://ibb.co/hgMML36"><img src="https://i.ibb.co/6yZZrjM/Imagen-Email.png" alt="Imagen-Email" border="0"/></a>, <p>Hola ${existingUser.firstName},</p> <p>Tu nueva contraseña es:${recovPassword}</p>,<p>Utiliza esta contraseña para ingresar al sitio <a href="https://pocket-pal.web.app/login">aquí</a>.</p>, <p>¡Muchas Gracias! </p>,`
+
+    };
+  console.log("Enviando correo de recuperacion de contraseña..."); // para debuguear
+ // console.log(registerToken+"a");
+
+ result = await transporter.sendMail(mailOptions);
+
+};
+
 export {
     usersGet,
     usersGetById,
     usersPut,
     usersDelete,
+    recoverypassword,
 }
 
 

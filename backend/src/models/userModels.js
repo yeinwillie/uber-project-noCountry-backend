@@ -45,6 +45,9 @@ const userSchema = new Schema({
         default: "UNVERIFIED" 
     },                                                      // para devolver al verificar el code
             
+    nationality: {
+        type: String,
+    }
 }, /* {
     timestamps:true
 } */)

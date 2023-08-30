@@ -8,7 +8,9 @@ router.get('/', usersGet);
 
 router.post('/id', validateTokenMiddleware, usersGetById);
 
-router.put('/:id', validateTokenMiddleware, usersPut);
+
+router.patch('/editarUsuario',validateTokenMiddleware,usersPut);
+
 
 router.delete('/:id', validateTokenMiddleware, usersDelete);
 
