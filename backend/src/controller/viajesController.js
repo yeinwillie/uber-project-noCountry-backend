@@ -3,6 +3,7 @@ import Viaje from '../models/viajesModels.js';
 import decodeToken from '../utils/decodeToken.js';
 import dotenv from 'dotenv';
 dotenv.config();
+import fetch from 'node-fetch';
 
 const ACCESS_TOKEN_MB = process.env.ACCESS_TOKEN_MB;
 

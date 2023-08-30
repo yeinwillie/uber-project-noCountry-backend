@@ -25,6 +25,7 @@
     "mercadopago": "^1.5.17",
     "mongodb": "^5.7.0",
     "mongoose": "^7.4.3",
+    "node-fetch": "^3.3.2",
     "nodemailer": "^6.9.4",
     "npm": "^9.8.1"
   },
