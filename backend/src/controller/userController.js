@@ -37,8 +37,14 @@ const usersGetById = async(req, res) =>{
       firstName : user.firstName,
       lastName : user.lastName,
       email : user.email,
+      dateOfBirth: user.dateOfBirth,
+      nationality: user.nationality,
+      cellnumber: user.cellNumber,
     }
-    res.send(payload);
+    const payloadWithNulls = Object.fromEntries(
+      Object.entries(payload).map(([key, value]) => [key, value !== undefined ? value : null])
+    );
+    res.send(payloadWithNulls);
   } catch (error) {
     return res.status(401).json({ message: 'Token inválido' });
   }
@@ -95,7 +101,7 @@ const usersPut = async (req, res) => {
     email: req.body.email,
     dateOfBirth: req.body.dateOfBirth,
     nationality: req.body.nationality,
-    cellnumber: req.body.cellnumber,
+    cellnumber: req.body.cellNumber,
   };
   
   try {
