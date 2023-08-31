@@ -40,9 +40,9 @@ export async function sendVerificationEmail(user, verificationCode) {
         to: user.email,  
         subject: "noreply",
         html: `
-        <a href="https://ibb.co/hgMML36"><img src="https://i.ibb.co/6yZZrjM/Imagen-Email.png" alt="Imagen-Email" border="0"></a>,
-        <p>Wellcome to Uber,        
-        </p><p>Por favor, usa el codigo ${verificationCode} para verificar tu correo electrónico:</p>
+        <a href="https://ibb.co/PrG01cB"><img src="https://i.ibb.co/GdQNCWg/urban-Move-Image-Email.png" alt="urban-Move-Image-Email" border="0"></a>,
+        <p>Wellcome to <strong> Urban Move </strong>,        
+        </p><p>Por favor, usa el codigo <strong> ${verificationCode} </strong> para verificar tu correo electrónico</p>
         `, 
     };
 
