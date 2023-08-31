@@ -3,6 +3,10 @@ import User from '../models/userModels.js'
 import bcrypt from 'bcrypt';
 import dotenv from 'dotenv';
 import jwt from 'jsonwebtoken';
+import generateRandomPassword from '../utils/randomPassword.js';
+import {google} from 'googleapis';
+import nodemailer from 'nodemailer';
+
 dotenv.config();
 const userModel = User;
 const secretKey = process.env.TOKEN_SECRET;
@@ -128,12 +132,13 @@ const recoverypassword = async (req,res) => {
       res.status(400).send({message:"Verifica tu correo electronico",});
     }
 
-    console.log(existingUser);
+    
     // Creando nueva clave para el usuario (6 numero, 1 mayuscula y 1minuscula)
 
     const recovPassword = generateRandomPassword();
+    
 
-    console.log(recovPassword);
+    
     // Hasheando la clave creada
 
     const salt = bcrypt.genSaltSync(10); //cantidad de saltos que da para encriptar, entre mas vuelta da es mas segura.
@@ -141,10 +146,9 @@ const recoverypassword = async (req,res) => {
 
     console.log(recovPasswordHash);
     // Guardando la nueva clave en la base de datos
-
     existingUser.password = recovPasswordHash;
     existingUser.save();
-
+    
     // enviar la clave por correo
     await sendrecoveryPasswordEmail(existingUser, recovPassword);
 
@@ -157,9 +161,22 @@ const recoverypassword = async (req,res) => {
   }
 };
 
+const CLIENT_ID = process.env.CLIENT_ID;
+const CLIENT_SECRET = process.env.CLIENT_SECRET;
+const REDIRECT_URI = process.env.REDIRECT_URI;
+const REFRESH_TOKEN = process.env.REFRESH_TOKEN;
+
+const oAuth2client = new google.auth.OAuth2(
+  CLIENT_ID,
+  CLIENT_SECRET,
+  REDIRECT_URI, 
+);
+
+oAuth2client.setCredentials({ refresh_token: REFRESH_TOKEN });
+
 async function sendrecoveryPasswordEmail(existingUser, recovPassword) {
   const accessToken = await oAuth2client.getAccessToken();
-
+  console.log(accessToken);
    const transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
@@ -171,21 +188,20 @@ async function sendrecoveryPasswordEmail(existingUser, recovPassword) {
       accessToken: accessToken,
     },
   });
-
+  
   const mailOptions = {
       from: "uberclonenocountry@gmail.com", // Reemplaza con tu dirección de Gmail
       to: existingUser.email,
       subject: "Recuperacion de contraseña Urbanmove",
-      html: `<a href="https://ibb.co/hgMML36"><img src="https://i.ibb.co/6yZZrjM/Imagen-Email.png" alt="Imagen-Email" border="0"/></a>, <p>Hola ${existingUser.firstName},</p> <p>Tu nueva contraseña es:${recovPassword}</p>,<p>Utiliza esta contraseña para ingresar al sitio <a href="https://pocket-pal.web.app/login">aquí</a>.</p>, <p>¡Muchas Gracias! </p>,`
+      html: `<a href="https://ibb.co/hgMML36"><img src="https://i.ibb.co/6yZZrjM/Imagen-Email.png" alt="Imagen-Email" border="0"/></a>, <p>Hola ${existingUser.firstName},</p> <p>Tu nueva contraseña es:${recovPassword}</p>,<p>Utiliza esta contraseña para ingresar al sitio <a href="
+      https://urbanmove.vercel.app">aquí</a>.</p>, <p>¡Muchas Gracias! </p>,`
 
     };
   console.log("Enviando correo de recuperacion de contraseña..."); // para debuguear
  // console.log(registerToken+"a");
-
- result = await transporter.sendMail(mailOptions);
+const result = await transporter.sendMail(mailOptions);
 
 };
-
 export {
     usersGet,
     usersGetById,
