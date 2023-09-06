@@ -35,6 +35,11 @@ export const PayCard = async (req, res) => {
       res.status(400).json({ amount: 'Invalid' });
       return;
     }
+    if (metodo == "efectivo") {
+      
+      res.status(200).json({ message:"efectivo" });
+      return;
+    }
     const newTicket = new Ticket({
       id_user: new mongoose.Types.ObjectId(id_usuario),
       id_conductor: new mongoose.Types.ObjectId(id_conductor),
@@ -61,8 +66,8 @@ export const PayCard = async (req, res) => {
         },
       ],
       back_urls: {
-        success: process.env.URL + id_conductor,
-        failure: 'URL_DE_FALLA',
+        success:  "https://urbanmove.vercel.app/",
+        failure: "https://urbanmove.vercel.app/dashboard",
         pending: 'URL_DE_PENDIENTE',
       },
       auto_return: 'approved',
