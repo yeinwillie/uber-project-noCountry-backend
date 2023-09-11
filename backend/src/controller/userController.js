@@ -40,6 +40,7 @@ const usersGetById = async (req, res) => {
       dateOfBirth: user.dateOfBirth,
       nationality: user.nationality,
       cellNumber: user.cellNumber,
+      _id: user._id,
     }
     const payloadWithNulls = Object.fromEntries(
       Object.entries(payload).map(([key, value]) => [key, value !== undefined ? value : null])
