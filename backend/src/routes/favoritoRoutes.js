@@ -16,10 +16,9 @@ router.get("/", obtenerFavoritos);
 router.put("/:id", validateTokenMiddleware, actualizarFavorito);
 router.get("/:id", obtenerFavoritoPorId);
 router.delete("/:id", validateTokenMiddleware, eliminarFavorito);
-router.get("/usuario/:id", validateTokenMiddleware, obtenerFavoritosDeUsuario);
+router.get("/usuario/:id",  obtenerFavoritosDeUsuario);
 router.get(
   "/conductore/:id",
-  validateTokenMiddleware,
   obtenerFavoritosDeConductor
 );
 
