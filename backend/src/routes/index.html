@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Coordenadas</title>
+</head>
+<body>
+  <h1>Coordenadas Recibidas</h1>
+  <ul id="coordinates-list"></ul>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+
+    socket.on('coordinates', (data) => {
+      const coordinatesList = document.getElementById('coordinates-list');
+      const listItem = document.createElement('li');
+      listItem.textContent = `Latitud: ${data[0]}, Longitud: ${data[1]}`;
+      coordinatesList.appendChild(listItem);
+    });
+  </script>
+</body>
+</html>
